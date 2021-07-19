@@ -1,6 +1,5 @@
 # Load required packages
-library(caret)
-library(janitor)
+library(readxl)
 library(tidyverse)
 
 ## Data manipulation
@@ -32,69 +31,11 @@ goal3 <- goal3 %>%
                            TRUE ~ Value))
 
 # Remove irrelevant variables
-goal3 <- goal3 %>% 
+goal3 <- goal3 %>% select()
 
-# TODO: Get data on regions and income levels to incorporate
-goal3_perc <- goal3_perc %>% 
-  group_by(TimePeriod, GeoAreaCode) %>% 
-  mutate(geo_mean = mean(Value)) %>% 
-  ungroup() %>% 
-  group_by(TimePeriod, Target) %>% 
-  mutate(target_mean = mean(Value)) %>% 
-  ungroup()
+# Reshape the data
 
+# Remove male/female for relevant variables
 
-################################## 2. Trends ##################################
-
-# What is the world overview trend since 2010?
-# Graph of world Target trends since 2010
-# TODO: incorporate indicators measured in numbers, not just percentages
-# TODO: have this be a drillthrough graph, where you can filter to a target and only see the associated indicators
-# TODO: have this be a drillthrough graph from indicator to series
-# TODO: make the numbers associated to the description
-goal3_perc %>% 
-  filter(GeoAreaName == 'World') %>% 
-  group_by(TimePeriod, Target) %>% 
-  summarise(target_mean = mean(Value)) %>% 
-  mutate(TimePeriod = as.factor(TimePeriod)) %>% 
-  ggplot() +
-  geom_path(aes(x = TimePeriod, y = target_mean, group = Target, color = Target))
-
-# Graph of overall average of indicators since 2010
-goal3_perc %>% 
-  filter(GeoAreaName == 'World') %>% 
-  group_by(TimePeriod) %>% 
-  summarise(target_mean = mean(Value)) %>% 
-  mutate(TimePeriod = as.factor(TimePeriod)) %>% 
-  ggplot() +
-  geom_path(aes(x = TimePeriod, y = target_mean, group = 1))
-
-
-################################## 3. Lagging ##################################
-
-# Which targets/series/indicators are lagging?
-lagging_targets <- goal3_perc %>% 
-  filter(GeoAreaName == 'World') %>% 
-  group_by(TimePeriod) %>% 
-  mutate(world_avg = mean(Value)) %>% 
-  ungroup() %>% 
-  group_by(TimePeriod, Target) %>% 
-  mutate(target_avg = mean(Value)) %>% 
-  ungroup() %>% 
-  mutate(diff = world_avg - target_avg)
-
-# Table of targets who are doing the worst
-bottom10 <- lagging_targets %>% 
-  filter(TimePeriod == 2019) %>%
-  distinct(TimePeriod, Target, world_avg, target_avg, diff) %>% 
-  arrange(desc(diff)) %>% 
-  head(5)
-
-# Table of targets who are doing the best
-top10 <- lagging_targets %>% 
-  filter(TimePeriod == 2019) %>% 
-  distinct(TimePeriod, Target, world_avg, target_avg, diff) %>% 
-  arrange(diff) %>% 
-  head(5)
 
 

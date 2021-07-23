@@ -1,7 +1,6 @@
 # Load required packages
 library(tidyverse)
 
-# Read in the data
 # Import the data
 goal3 <- read.csv('goal3.csv')
 

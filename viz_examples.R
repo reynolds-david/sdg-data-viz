@@ -2,6 +2,7 @@
 library(tidyverse)
 
 # Read in the data
+# Import the data
 goal3 <- read.csv('goal3.csv')
 
 # Plot the first target for worldwide over time

@@ -25,4 +25,4 @@ ex2_dat <- goal3 %>%
   mutate(value = scale(value))
 
 ex2_plot <- ggplot(data = ex2_dat, aes(x = time_period, y = value, color = target)) + 
-  geom_line() + labs(y = "value") + theme_minimal()
+  geom_line() + theme_minimal()

@@ -1,9 +1,9 @@
 # Exploratory Analysis of UN Sustainability Goal 3
-# # What is the world overview and trend since 2010 (if historical data is available) for your selected goal? Make sure to dive deep into the targets, indicators, and series.  
-# # Which targets, indicators, and series are lagging for the selected goal compared to the worldwide trend?  
-# # Which countries are underperforming or overperforming? How do these countries compare to their region, income group, or world average? 
-# # How does the U.S. compare in these area's of foreign assistances to China and Russia (if data is available)? Do these countries appear to pursue similar area's of foreign assistance, or contrasting? 
-# # How would you advise the U.S. Government and its partners to assist countries in the endeavor to improve the metrics related to the selected goal?  
+# # What is the?world overview?and?trend since 2010?(if historical data is available)?for your selected goal? Make sure to?dive deep into the targets, indicators, and series.??
+# # Which targets, indicators, and series are?lagging for the selected goal compared to the worldwide trend???
+# # Which?countries are underperforming or overperforming? How do these?countries compare to their region, income group, or world average??
+# # How does the U.S.?compare in these?area's?of?foreign assistances to China and Russia (if data is available)??Do these countries appear to pursue similar?area's?of foreign assistance, or contrasting??
+# # How would you?advise the U.S. Government and its partners?to assist countries in the endeavor to improve the metrics related to the selected goal???
 #   
 
 ################################## 1. Setup ##################################
@@ -16,7 +16,7 @@ library(caret)
 library(factoextra)
 
 # Import data
-goal3_raw <- read.xlsx('Health Data\\Goal3.xlsx')
+goal3_raw <- read.xlsx('Goal3.xlsx')
 countries <- read.xlsx('Country_List.xlsx')
 
 # Convert all data to a percent out of 100

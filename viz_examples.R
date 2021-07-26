@@ -26,3 +26,27 @@ ex2_dat <- goal3 %>%
 
 ex2_plot <- ggplot(data = ex2_dat, aes(x = time_period, y = value, color = target)) + 
   geom_line() + theme_minimal()
+
+# 
+ex3_dat <- goal3 %>% 
+  drop_na("iso_alpha3_code") %>% 
+  select(geo_area_name, time_period, norm) %>% 
+  group_by(geo_area_name, time_period) %>% 
+  summarize(value = mean(norm)) %>% 
+  group_by(geo_area_name) %>% 
+  mutate(value = scale(value)) %>% 
+  filter(time_period == 2020)
+
+ex3_top_plot <- ggplot(data = ex3_dat %>% 
+                     arrange(desc(value)) %>% 
+                     head(10), 
+                   aes(x = reorder(geo_area_name, -value), y = value)) + geom_bar(stat = 'identity') + theme_minimal()
+
+ex3_bottom_plot <- ggplot(data = ex3_dat %>% 
+                     arrange(desc(value)) %>% 
+                     tail(10), 
+                   aes(x = reorder(geo_area_name, -value), y = value)) + geom_bar(stat = 'identity') + theme_minimal()
+
+
+ex3_top_plot
+ex3_bottom_plot

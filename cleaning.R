@@ -6,6 +6,8 @@ library(tidyverse)
 # Import the data
 goal3_raw <- read_excel('Goal3.xlsx', sheet = 1)
 goal3_raw$Value <- as.numeric(goal3_raw$Value)
+countries <- read_xlsx('Country_List.xlsx') %>% 
+  clean_names()
 
 # Remove irrelevant columns
 goal3 <- goal3_raw %>% select("target" = Target, "indicator" = Indicator, 
@@ -13,9 +15,16 @@ goal3 <- goal3_raw %>% select("target" = Target, "indicator" = Indicator,
                           "geo_area_name" = GeoAreaName, "time_period" = TimePeriod, 
                           "value" = Value)
 
+# Merge with countries to get ISO codes
+goal3 <- goal3 %>% 
+  left_join(countries, by = c("geo_area_name" = "country_or_area"))
+
+goal3 <- goal3 %>% 
+  select(-m49_code)
+
 # Group by target, indicator, series_code, geo_area_code, geo_area_name, and time_period
 goal3 <- goal3 %>% 
-  group_by(target, indicator, series_code, geo_area_code, geo_area_name, time_period) %>% 
+  group_by(target, indicator, series_code, geo_area_code, geo_area_name, time_period, iso_alpha3_code) %>% 
   summarize(value = mean(value))
 
 # Convert relevant series to percentages where 0 is good

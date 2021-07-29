@@ -58,5 +58,8 @@ goal3 <- goal3 %>%
 # Remove rows in which norm is NA due to lack of sample size
 goal3 <- goal3 %>% filter(!is.na(norm))
 
+# Remove rows that do not apply to countries (World, North America, etc)
+# goal3 <- goal3 %>% drop_na("iso_alpha3_code") %>% as.data.frame()
+
 # Export the data
 write_csv(goal3, "goal3.csv")

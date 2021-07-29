@@ -20,6 +20,7 @@ ex1_plot <- ggplot(data = ex1_dat, aes(x = time_period, y = value)) + geom_line(
   labs(y = "target 3.1") + theme_minimal()
 
 # Plot all targets for worldwide over time
+  ### BC NOTE: This seems like a good one to have the user choose the target that they want to look at. Could also make the same plot for indicators & have the user choose the indicator to view over time
 ex2_dat <- goal3 %>% 
   filter(geo_area_code == "1") %>% 
   select(target, time_period, norm) %>% 
@@ -52,6 +53,8 @@ ex3_bottom_plot <- ggplot(data = ex3_dat %>%
                      tail(10), 
                    aes(x = reorder(geo_area_name, -value), y = value)) + geom_bar(stat = 'identity') + theme_minimal()
 
+ex3_top_plot
+ex3_bottom_plot
 
 ############### Clustering ###############
 
@@ -93,3 +96,8 @@ final <- kmeans(ex4_test, k, nstart = 25)
 fviz_cluster(final, data = ex4_test)
 
 ### Unfortunately, remembering that there is no way to pull feature importance from unsupervised learning models, so this is all we go with. Think we should add some language in the app explaining what people are seeing
+
+
+############### Table? ###############
+
+# Could include a table at the bottom of the app to show the underlying data?

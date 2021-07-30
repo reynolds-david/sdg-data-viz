@@ -8,6 +8,8 @@ goal3_raw <- read_excel('Goal3.xlsx', sheet = 1)
 goal3_raw$Value <- as.numeric(goal3_raw$Value)
 countries <- read_xlsx('Country_List.xlsx') %>% 
   clean_names()
+target_indicator_names <- read_xlsx('Global Indicator Framework after 2021 refinement_English.xlsx') %>% 
+  clean_names()
 
 # Remove irrelevant columns
 goal3 <- goal3_raw %>% select("target" = Target, "indicator" = Indicator, 
@@ -19,12 +21,16 @@ goal3 <- goal3_raw %>% select("target" = Target, "indicator" = Indicator,
 goal3 <- goal3 %>% 
   left_join(countries, by = c("geo_area_name" = "country_or_area"))
 
+# Merge with names to get target and indicator names
+goal3 <- goal3 %>% 
+  left_join(target_indicator_names)
+
 goal3 <- goal3 %>% 
   select(-m49_code)
 
 # Group by target, indicator, series_code, geo_area_code, geo_area_name, and time_period
 goal3 <- goal3 %>% 
-  group_by(target, indicator, series_code, geo_area_code, geo_area_name, time_period, iso_alpha3_code) %>% 
+  group_by(target, target_name, indicator, indicator_name, series_code, geo_area_code, geo_area_name, time_period, iso_alpha3_code) %>% 
   summarize(value = mean(value))
 
 # Convert relevant series to percentages where 0 is good
@@ -53,13 +59,14 @@ goal3 <- goal3 %>%
 # Group by series_code and geo_area_code and then standardize
 goal3 <- goal3 %>% 
   group_by(series_code, geo_area_code) %>% 
-  mutate(norm = scale(value))
+  mutate(norm = scale(value)[,1])
 
 # Remove rows in which norm is NA due to lack of sample size
 goal3 <- goal3 %>% filter(!is.na(norm))
 
 # Remove rows that do not apply to countries (World, North America, etc)
-# goal3 <- goal3 %>% drop_na("iso_alpha3_code") %>% as.data.frame()
+goal3 <- goal3 %>% drop_na("iso_alpha3_code")
 
 # Export the data
-write_csv(goal3, "goal3.csv")
+  ## BC NOTE - had trouble with write_csv not recognizing vroom, so changed to write.csv
+write.csv(goal3, "goal3.csv")

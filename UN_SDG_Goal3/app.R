@@ -17,13 +17,14 @@ library(factoextra)
 library(cluster)
 
 goal3 <- read.csv('..\\goal3.csv') %>% 
-  drop_na("iso_alpha3_code")
+  mutate(geo_area_name = ifelse(geo_area_name == 'United Kingdom of Great Britain and Northern Ireland', 'United Kingdom', geo_area_name))
 
 ############# DEFINE UI LOOK
 ui <- dashboardPage(
 
     ### Application title
-    dashboardHeader(title = "UN SDG, Goal 3"),
+    dashboardHeader(title = "UN Sustainable Development Goal 3",
+                    titleWidth = 450),
 
     ### Create the sidebar
     dashboardSidebar(
@@ -83,30 +84,39 @@ ui <- dashboardPage(
     ### Create the body of the dash
     dashboardBody(
       
+      # Overview of what the SDGs are
+      fluidRow(box("The 2030 Agenda for Sustainable Development, adopted by all United Nations Member States in 2015, provides a shared blueprint for peace and prosperity for people and the planet, now and into the future. At its heart are the 17 Sustainable Development Goals (SDGs), which are an urgent call for action by all countries - developed and developing - in a global partnership. They recognize that ending poverty and other deprivations must go hand-in-hand with strategies that improve health and education, reduce inequality, and spur economic growth - all while tackling climate change and working to preserve our oceans and forests.",
+                   width = 12)),
       
+      # Set cards with numbers of countries, target, indicators, etc up top
       fluidRow(valueBox(length(unique(goal3$geo_area_name)), "Countries"),
                valueBox(length(unique(goal3$target)), "Targets"),
                valueBox(length(unique(goal3$indicator)), "Indicators")
       ),
       
-      # Overall description of what user should see and do
-      fluidRow(box("Each Goal has several indicators. These indicators help determine the success of the goals.",
+      # Overall description of goals
+      fluidRow(box("This dashboard covers just one of these 17 goals - Goal 3: Ensure healthy lives and promote well-being for all at all ages. Scroll down below to see how the components of this goal change over time, how well countries are doing on this goal, and clusters of countries with similar component scores",
                width = 12)),
+      
       # Line charts of targets and indicators over time
-      fluidRow(box("Each Goal has several indicators. These indicators help determine the success of the goals.",
-                   plotlyOutput("targets_over_time")),
-               box("Each Target has several indicators. These are measurable things that people keep track of.",
-                   plotlyOutput("indicators_over_time"))),
+      fluidRow(box(plotlyOutput("targets_over_time"),
+                   "There are several targets within each goal. Targets are a quantified sub-component of a goal that will contribute in a major way to its achievement. A target should be an outcome. For the visualization above, targets have been normalized to the same scale, and shown over time. Use the filters in the sidebar to examine individual targets, and hover over the target to view the full target name."),
+               box(plotlyOutput("indicators_over_time"),
+                   "Within each target (see left), there are several indicators. Indicators are a precise metrics to assess if a target is being met. There may be more than one indicator associated with a target. For the visualization above, indicators have been normalized to the same scale, and shown over time. Use the filters in the sidebar to examine individual indicators, and hover over the indicator to view the full indicator name."
+                   )),
+      
       # Bar charts of best and worst countries
-      fluidRow(box("Each Goal has several indicators. These indicators help determine the success of the goals.",
-                   plotlyOutput("best_countries")),
-               box("Each Target has several indicators. These are measurable things that people keep track of.",
-                   plotlyOutput("worst_countries"))),
-      fluidRow(box("Each Goal has several indicators. These indicators help determine the success of the goals.",
+      fluidRow(box(plotlyOutput("best_countries"),
+                   "Some countries are doing very well in attaining the goal of ensuring healthy lives and promoting well-being for all. Use the filters in the sidebar to see how the 10 most effective countries change with time."),
+               box(plotlyOutput("worst_countries"),
+                   "Some countries need improvement in attaining the goal of ensuring healthy lives and promoting well-being for all. Use the filters in the sidebar to see how the 10 least effective countries change with time.")),
+      
+      # Cluster viz
+      fluidRow(box("The visualization below is the result of a k-means cluster analysis. This unsupervised machine learning technique groups, or clusters, countries together based on their similar responses to each of the series/indicators/targets. See how these groupings change when you change the number of clusters in the sidebar. Countries that do not easily fall into a cluster are of particular interest - this could indicate a country is doing particularly well or particularly poorly on the SDG goal.",
                    width = 12,
                    plotOutput("clusters"))),
       
-      tags$footer("Visit SDG WEBSITE for more information on UN Sustainable Development Goals")
+      tags$footer("Visit https://sdgs.un.org/goals for more information on UN Sustainable Development Goals")
     )
 )
 
@@ -118,22 +128,30 @@ server <- function(input, output) {
     goal3 %>% 
       filter(geo_area_name %in% input$area,
              target %in% input$target,
-            indicator %in% input$indicator,
-            time_period >= input$time)
+             indicator %in% input$indicator,
+             time_period >= input$time)
   })
 
   ### Line graph of targets over time
   output$targets_over_time <- renderPlotly({
     ggplotly(
       ggplot(data = goal3_reactive() %>% 
-               select(target, time_period, norm) %>% 
-               group_by(target, time_period) %>% 
+               select(target, target_name, time_period, norm) %>% 
+               group_by(target, target_name, time_period) %>% 
                summarize(value = mean(norm)) %>% 
-               group_by(target) %>% 
+               group_by(target, target_name) %>% 
                mutate(value = scale(value)),
-             aes(x = time_period, y = value, color = target)) + 
+             aes(x = time_period, 
+                 y = value, 
+                 color = target, 
+                 text = stringr::str_wrap(string = target_name,
+                                                 width = 65)
+                   )) + 
         geom_line() + 
-        theme_minimal()
+        theme_minimal() +
+        labs(title = 'targets over time',
+             x = 'year'),
+      tooltip = c("value", "time_period", "text")
     )
   })
   
@@ -141,14 +159,22 @@ server <- function(input, output) {
   output$indicators_over_time <- renderPlotly({
     ggplotly(
       ggplot(data = goal3_reactive() %>% 
-               select(indicator, time_period, norm) %>% 
-               group_by(indicator, time_period) %>% 
+               select(indicator, indicator_name, time_period, norm) %>% 
+               group_by(indicator, indicator_name, time_period) %>% 
                summarize(value = mean(norm)) %>% 
-               group_by(indicator) %>% 
+               group_by(indicator, indicator_name) %>% 
                mutate(value = scale(value)),
-             aes(x = time_period, y = value, color = indicator)) +
+             aes(x = time_period, 
+                 y = value, 
+                 color = indicator, 
+                 text = stringr::str_wrap(string = indicator_name,
+                                          width = 65)
+             )) +
         geom_line() +
-        theme_minimal()
+        theme_minimal() +
+        labs(title = 'indicators over time',
+             x = 'year'),
+      tooltip = c("value", "time_period", "text")
     )
   })
   
@@ -171,7 +197,9 @@ server <- function(input, output) {
              aes(x = reorder(geo_area_name, -value), y = value)) + 
         geom_bar(stat = 'identity') + 
         theme_minimal() +
-        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) +
+        labs(title = 'best-performing countries',
+             x = 'country')
     )
   })
   
@@ -184,7 +212,9 @@ server <- function(input, output) {
              aes(x = reorder(geo_area_name, -value), y = value)) + 
         geom_bar(stat = 'identity') + 
         theme_minimal() +
-        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1))
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) +
+        labs(title = 'worst-performing countries',
+             x = 'country')
     )
   })
   

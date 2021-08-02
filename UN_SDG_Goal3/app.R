@@ -81,7 +81,7 @@ ui <- dashboardPage(
     dashboardBody(
       
       # Overview of what the SDGs are
-      fluidRow(box("The 2030 Agenda for Sustainable Development, adopted by all United Nations member states in 2015, provides a shared blueprint for peace and prosperity for people and the planet, now and into the future. At its heart are the 17 Sustainable Development Goals (SDGs), which are an urgent call for action by all countries, developed and developing, in a global partnership. They recognize that ending poverty and other deprivations must go hand in hand with strategies that improve health and education, reduce inequality, and spur economic growth, all while tackling climate change and working to preserve oceans and forests.",
+      fluidRow(box('According to the United Nations website, "The 2030 Agenda for Sustainable Development, adopted by all United Nations member states in 2015, provides a shared blueprint for peace and prosperity for people and the planet, now and into the future. At its heart are the 17 Sustainable Development Goals (SDGs), which are an urgent call for action by all countries - developed and developing - in a global partnership. They recognize that ending poverty and other deprivations must go hand in hand with strategies that improve health and education, reduce inequality, and spur economic growth, all while tackling climate change and working to preserve our oceans and forests."',
                    width = 12)),
       
       # Set cards with numbers of countries, target, indicators, etc up top
@@ -91,7 +91,7 @@ ui <- dashboardPage(
       ),
       
       # Overall description of goals
-      fluidRow(box("This dashboard focuses on the third goal, which aims to ensure healthy lives and promote well-being for all. Scroll down to see how the components of this goal change over time, how well countries are doing on the goal, and clusters of countries with similar component scores",
+      fluidRow(box('This dashboard focuses on the third Sustainable Development Goal, which aims to "Ensure healthy lives and promote well-being for all at all ages." Scroll down to see how the components of this goal change over time, how well countries are doing on the goal, and clusters of countries with similar component scores',
                width = 12)),
       
       # Line charts of targets and indicators over time
@@ -136,7 +136,7 @@ server <- function(input, output) {
                group_by(target, target_name, time_period) %>% 
                summarize(value = mean(norm)) %>% 
                group_by(target, target_name) %>% 
-               mutate(value = scale(value), time_period = as.Date(as.character(time_period), format = '%Y')),
+               mutate(value = round(scale(value), 2), time_period = as.Date(as.character(time_period), format = '%Y')),
              aes(x = time_period, 
                  y = value, 
                  color = target,
@@ -160,7 +160,7 @@ server <- function(input, output) {
                group_by(indicator, indicator_name, time_period) %>% 
                summarize(value = mean(norm)) %>% 
                group_by(indicator, indicator_name) %>% 
-               mutate(value = scale(value), time_period = as.Date(as.character(time_period), format = '%Y')),
+               mutate(value = round(scale(value), 2), time_period = as.Date(as.character(time_period), format = '%Y')),
              aes(x = time_period, 
                  y = value, 
                  color = indicator,
